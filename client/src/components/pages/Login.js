@@ -39,7 +39,7 @@ class PasswordInput extends Component {
 		return (
 			<div className="md-form pb-3">
 				<TextField
-					placeholder="Your Password"
+					placeholder={trans.password}
 					type={passwordIsMasked ? 'password' : 'text'}
 					{...this.props}
 					InputProps={{
@@ -116,7 +116,7 @@ class Login extends Component {
 				<div className="modal-dialog" role="document">
 					{/* <form onSubmit={this.handleSubmit}> */}
 					<div className="modal-content form-elegant">
-						{/*Header*/}
+						{/Header/}
 						<div className="modal-header text-center">
 							<h3 className="modal-title w-100 dark-grey-text font-weight-bold my-3" id="myModalLabel">
 								<strong> {trans.loginTitle}</strong>
@@ -142,8 +142,8 @@ class Login extends Component {
 									onChange={this.handleInputChange}
 									value={this.state.email}
 								>
-									<div className="valid-feedback">Looks good!</div>
-									<div className="invalid-feedback">Please enter a valid email</div>
+									<div className="valid-feedback">{trans.valid}</div>
+									<div className="invalid-feedback">{trans.invalid}</div>
 								</MDBInput>
 
 								{/* <label data-error="wrong" data-success="right" htmlFor="Form-email1">
@@ -170,7 +170,7 @@ class Login extends Component {
 								<p className="font-small blue-text d-flex justify-content-end">
 									{' '}
 									<a href="forgotPassword" className="blue-text ml-1">
-										Forgot Password?
+										{trans.forgot}
 									</a>
 								</p>
 							</div>
@@ -187,9 +187,9 @@ class Login extends Component {
 
 						<div className="modal-footer mx-5 pt-3 mb-1">
 							<p className="font-small grey-text d-flex justify-content-end">
-								Not a member?{' '}
+								{trans.member}{' '}
 								<a href="/register" className="blue-text ml-1">
-									Sign Up
+									{trans.signup}
 								</a>
 							</p>
 						</div>
