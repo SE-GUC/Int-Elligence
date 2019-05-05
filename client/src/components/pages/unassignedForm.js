@@ -5,6 +5,7 @@ import '../../App.scss';
 import { Button } from 'react-bootstrap';
 import 'mdbreact/dist/css/mdb.css';
 import Flippy, { FrontSide, BackSide } from 'react-flippy';
+import swal from 'sweetalert';
 import trans from '../translations/unassignedTranslation';
 const mongoose = require('mongoose');
 class unassignedForm extends Component {
@@ -18,8 +19,11 @@ class unassignedForm extends Component {
 				headers: { Authorization: localStorage.getItem('jwtToken') }
 			})
 			.then((res) => {
-				if (Array.isArray(res.data.data)) {
+				if (Array.isArray(res.data.data)&&res.data.data.length>0) {
 					this.setState({ certainFormType: res.data.data });
+				}
+				else{
+					swal('There are no cases to pick right now!')
 				}
 			});
 	}
@@ -29,8 +33,12 @@ class unassignedForm extends Component {
 			.put('/routes/api/userDynamicForms/takingForm/' + mongoose.Types.ObjectId(formId), {
 				headers: { Authorization: localStorage.getItem('jwtToken') }
 			})
-			.then((res) => console.log(res))
-			// document.location.href='/UnassignedForm'
+			.then((res) => {
+				//document.getElementById('Flip').flipOnClick = false;
+				swal('This Case is assigned to YOU!!');
+				setTimeout("document.location.href = '/UnassignedForm';",3500);
+				// document.location.href = '/UnassignedForm';
+			})
 			.catch((err) => console.log(err));
 	};
 
@@ -84,10 +92,10 @@ class unassignedForm extends Component {
 							<Button
 								type="button"
 								variant="ali"
-								onClick={() => (this.AssignCase(Form._id), alert('This Case is assigned to YOU!!'))}
+								onClick={() => this.AssignCase(Form._id)}
 								class="btn btn-info"
 							>
-								<h6 style={{ color: '#64b9e0' }}>Pick Case</h6>
+								<h6 style={{ color: '#64b9e0' }}>{trans.pick}</h6>
 							</Button>
 						</div>
 					</FrontSide>
@@ -108,19 +116,51 @@ class unassignedForm extends Component {
 									key !== 'investorId' &&
 									key !== 'lawyerId'
 								) {
+									var now=key;
+									var temp="";
+									temp=temp+key.charAt(0).toUpperCase();
+									for(var j=1;j<now.length;j++){
+									  if(now.charCodeAt(j)>=65 && now.charCodeAt(j)<=90){
+										temp=temp+" "
+										temp=temp+now.charAt(j)
+									  }
+									  else{
+										temp=temp+now.charAt(j)
+									  }
+									  
+									}
 									var constraints = Form[key];
 									console.log(key, ':', constraints);
 									for (var i in constraints) {
 										if (Array.isArray(constraints)) return constraints.map((att, index) => {});
+										if (key==="creationDate"){
+											var date=constraints.substring(0,10);
+											console.log(date)
+											return (
+											  <div>
+												<div key={key}>
+												  <h5>
+													<i class="fas fa-circle" style={{fontSize:'13px'}}/> {temp} : 
+													  <span style={{ textAlign: 'center' }} />{' '}
+													  <span style={{ color: '#9ad1e7' }}> {date}{" "}</span>{' '}
+												  </h5>
+												</div>
+												
+											  </div>
+											);
+				  
+										  }
+										  else{
 										return (
 											<h5>
-												<i class="fas fa-circle" style={{ fontSize: '13px' }} /> {key} :{' '}
+												<i class="fas fa-circle" style={{ fontSize: '13px' }} /> {temp} :{' '}
 												<span style={{ textAlign: 'center' }} />{' '}
 												<span style={{ color: '#9ad1e7' }}>{constraints}</span>{' '}
 											</h5>
 										);
 									}
 								}
+							}
 							})}
 						</div>
 					</BackSide>
@@ -129,6 +169,7 @@ class unassignedForm extends Component {
 		});
 	};
 	render() {
+		trans.setLanguage(this.props.lang);
 		return (
 			<div>
 				<div

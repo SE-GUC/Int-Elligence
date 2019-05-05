@@ -1,22 +1,17 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import '../../App.css';
-import Table from 'react-bootstrap/Table';
 import { Button, Container, ButtonGroup, ButtonToolbar } from 'react-bootstrap';
 import 'mdbreact/dist/css/mdb.css';
 import AddCommentsLawyer from './AddCommentsLawyer';
 import Cardd from '../form/Card';
-import GetAllUserForms from '../form/GetAllUserForms';
 import { Dropdown, Card } from 'react-bootstrap';
 import { MDBProgress } from 'mdbreact';
+import { blue200 } from 'material-ui/styles/colors';
+import trans from '../translations/getCaseLawyerTranslation';
+import swal from 'sweetalert';
 const mongoose = require('mongoose');
 var $ = require('jquery')(window);
-
-// tabRow(){
-//   return this.state.companies.map(function(company,i){
-//       return <GetAllUserForms company={company} key={i} />;
-//   });
-// }
 
 class Companies extends Component {
 	state = {
@@ -36,25 +31,35 @@ class Companies extends Component {
 				headers: { Authorization: localStorage.getItem('jwtToken') }
 			})
 			.then((res) => {
-				if (Array.isArray(res.data.data)) {
+				if (Array.isArray(res.data.data) && res.data.data.length > 0) {
 					this.setState({ companies: res.data.data });
+				} else {
+					swal('You do not have any In Progress Cases yet!');
 				}
 				console.log(this.state.companies);
 			})
 			.catch((err) => {
-				alert('' + err);
+				swal('' + err);
 			});
 	}
 
 	sort = () => {
 		axios.defaults.headers.common['Authorization'] = localStorage.getItem('jwtToken');
 		axios
-			.get('/routes/api/userDynamicForms/AllFormSortedByFormId/', {
+			.get('/routes/api/userDynamicForms/SpecificFormSortedByFormId', {
 				headers: { Authorization: localStorage.getItem('jwtToken') }
 			})
 			.then((res) => {
 				this.setState({ companies: res.data.data });
-				alert('Cases have been sorted');
+
+				// const r = swal.confirm("cases have been sorted?");
+				// if(r == true){
+
+				// 	document.location.href = '/getCaseLawyer';
+				//  }
+
+				swal('Cases have been sorted');
+				setTimeout("document.location.href = '/getCaseLawyer';", 3500);
 			})
 			.catch((err) => {
 				console.log(err);
@@ -63,12 +68,13 @@ class Companies extends Component {
 	sortByCreationDate = () => {
 		axios.defaults.headers.common['Authorization'] = localStorage.getItem('jwtToken');
 		axios
-			.get('/routes/api/userDynamicForms/AllformsSortedByformDate/', {
+			.get('/routes/api/userDynamicForms/SpecificformsSortedByformDate', {
 				headers: { Authorization: localStorage.getItem('jwtToken') }
 			})
 			.then((res) => {
 				this.setState({ companies: res.data.data });
-				alert('Cases have been sorted');
+				swal('Cases have been sorted');
+				setTimeout("document.location.href = '/getCaseLawyer';", 3500);
 			})
 			.catch((err) => {
 				console.log(err);
@@ -82,17 +88,30 @@ class Companies extends Component {
 				headers: { Authorization: localStorage.getItem('jwtToken') }
 			})
 			.then((res) => {
-				alert('Form updated Succesfully');
-				document.location.href = '/getCaseLawyerSPC';
+				swal('The form was accepted succesfully');
+				setTimeout("document.location.href = '/getCaseLawyer';", 3500);
+			})
+			.catch((err) => {
+				swal(err.response.data.msg || err.response.data);
+				console.log(err.response);
 			});
 	};
 
 	calculateFees = (formId) => {
 		console.log('hi');
 		axios.defaults.headers.common['Authorization'] = localStorage.getItem('jwtToken');
-		axios.put('/routes/api/userDynamicForms/calculatingFees/' + mongoose.Types.ObjectId(formId), {
-			headers: { Authorization: localStorage.getItem('jwtToken') }
-		});
+		axios
+			.put('/routes/api/userDynamicForms/calculatingFees/' + mongoose.Types.ObjectId(formId), {
+				headers: { Authorization: localStorage.getItem('jwtToken') }
+			})
+			.then((res) => {
+				swal('The fees was calculated succesfully');
+				setTimeout("document.location.href = '/getCaseLawyer';", 3500);
+			})
+			.catch((err) => {
+				swal(err.response.data.msg || err.response.data);
+				console.log(err.response);
+			});
 	};
 
 	getAttributes = () => {
@@ -117,6 +136,17 @@ class Companies extends Component {
 									key !== 'reviewerId' &&
 									key !== '__v'
 								) {
+									var now = key;
+									var temp = '';
+									temp = temp + key.charAt(0).toUpperCase();
+									for (var j = 1; j < now.length; j++) {
+										if (now.charCodeAt(j) >= 65 && now.charCodeAt(j) <= 90) {
+											temp = temp + ' ';
+											temp = temp + now.charAt(j);
+										} else {
+											temp = temp + now.charAt(j);
+										}
+									}
 									var constraints = Form[key];
 									if (Array.isArray(constraints)) {
 										if (!constraints['0']) return;
@@ -130,13 +160,14 @@ class Companies extends Component {
 												<div>
 													{' '}
 													<h3>
-														<i class="fas fa-genderless" />LawyerComments
+														<i class="fas fa-circle" style={{ fontSize: '15px' }} />
+														{trans.commentsL}
 													</h3>
 													{keys.map((att, index) => {
 														return (
-															<h5 style={{ paddingLeft: '5%' }}>
-																<i class="fas fa-circle" />
-																{constraints['0'][att]}
+															<h5 style={{ paddingLeft: '5%', fontSize: '15px' }}>
+																<span style={{ textAlign: 'center' }} />{' '}
+																<span style={{ color: '#9ad1e7' }}>{constraints[att]}</span>{' '}
 															</h5>
 														);
 													})}
@@ -147,13 +178,14 @@ class Companies extends Component {
 												<div>
 													{' '}
 													<h3>
-														<i class="fas fa-genderless" />ReviewerComments
+														<i class="fas fa-circle" style={{ fontSize: '15px' }} />
+														{trans.commentsR}
 													</h3>
 													{keys.map((att, index) => {
 														return (
 															<h5 style={{ paddingLeft: '5%' }}>
-																<i class="fas fa-genderless" />
-																{constraints['0'][att]}
+																<span style={{ textAlign: 'center' }} />{' '}
+																<span style={{ color: '#9ad1e7' }}>{constraints[att]}</span>{' '}
 															</h5>
 														);
 													})}
@@ -164,14 +196,18 @@ class Companies extends Component {
 												<div>
 													{' '}
 													<h3>
-														<i class="fas fa-genderless" />
+														<i class="fas fa-circle" />
 														{key}
 													</h3>
 													{keys.map((att, index) => {
 														return (
 															<h5 style={{ paddingLeft: '5%' }}>
-																<i class="fas fa-genderless" /> {att} :
-																{constraints['0'][att]}
+																<i class="fas fa-circle" sstyle={{ fontSize: '0.5em' }} />{' '}
+																{att} :
+																<span style={{ textAlign: 'center' }} />{' '}
+																<span style={{ color: '#9ad1e7' }}>
+																	{constraints['0'][att]}
+																</span>{' '}
 															</h5>
 														);
 													})}
@@ -179,72 +215,93 @@ class Companies extends Component {
 											);
 										}
 									}
-
-									return (
-										<div>
-											<div key={key}>
-												<h3>
-													<i class="fas fa-circle" style={{ fontSize: '0.5em' }} /> {key} :{' '}
-													{constraints}{' '}
-												</h3>
+									if (key === 'creationDate') {
+										var date = constraints.substring(0, 10);
+										console.log(date);
+										return (
+											<div>
+												<div key={key}>
+													<h3>
+														<i class="fas fa-circle" style={{ fontSize: '0.5em' }} /> {temp}{' '}
+														:
+														<span style={{ textAlign: 'center' }} />{' '}
+														<span style={{ color: '#9ad1e7' }}> {date} </span>{' '}
+													</h3>
+												</div>
 											</div>
-										</div>
-									);
+										);
+									} else {
+										return (
+											<div>
+												<div key={key}>
+													<h3>
+														<i class="fas fa-circle" style={{ fontSize: '0.5em' }} /> {temp}{' '}
+														: <span style={{ textAlign: 'center' }} />{' '}
+														<span style={{ color: '#9ad1e7' }}>{constraints}</span>{' '}
+													</h3>
+												</div>
+											</div>
+										);
+									}
 								}
 							})}
 							{/* <MDBProgress  material value={35} color="dark" height="35px">
                <h3> In progress Lawyer </h3>
                 </MDBProgress> */}
 
-							<div style={{ textAlign: 'right' }}>
-								<ButtonGroup size="sm" className="mt-3">
-									<Button variant="outline-blue" style={{ width: '250px', height: '115px' }}>
-										<h3>
-											<i
-												class="fas fa-handshake"
-												style={{ fontSize: '1em' }}
-												onClick={() => this.accept(Form._id)}
-											/>{' '}
-											<br /> ACCEPT CASE
-										</h3>
+							<div variant="omar" style={{ textAlign: 'right', color: blue200 }}>
+								<ButtonGroup variant="omar" size="sm" className="mt-3" style={{ color: blue200 }}>
+									<Button
+										variant="omar"
+										style={{ width: '120px', height: '65px', backgroundColor: '#a3dbf1' }}
+										onClick={() => this.accept(Form._id)}
+									>
+										<h6>
+											<i class="fas fa-handshake" style={{ fontSize: '1em' }} />
+											<br />
+											{trans.accept}
+										</h6>
 									</Button>
 									<Button
-										variant="outline-blue"
-										block
-										style={{ width: '250px', height: '115px' }}
+										variant="omar"
+										style={{ width: '120px', height: '65px', backgroundColor: '#a3dbf1' }}
 										onClick={() => this.calculateFees(Form._id)}
 									>
-										<h3>
-											<i class="fas fa-money-bill-alt" style={{ fontSize: '1em' }} /> <br />{' '}
-											Calculate The Fees
-										</h3>
+										<h9>
+											<i class="fas fa-money-bill-alt" style={{ fontSize: '1em' }} />
+											<br />
+											{trans.calculate}
+										</h9>
 									</Button>
-									{/* <Button
-                    variant="outline-blue"
-                    block
-                    style={{ width: "250px", height: "115px" }}
-                    onClick={()=>this.redirectEdit(Form._id,Form.formType)}
-                  >
-                    <h3>
-                      <i
-                        class="fas fa-edit"
-                        style={{ fontSize: "1em" }}
-                      />{" "}
-                      <br /> Edit
-                    </h3>
-                  </Button> */}
+									{Form.status === 'Reviewer rejected' ? (
+										<div>
+											<Button
+												type="button"
+												variant="omar"
+												style={{ width: '120px', height: '65px', backgroundColor: '#a3dbf1' }}
+												onClick={() => this.redirectEdit(Form._id, Form.formType)}
+												class="btn btn-info"
+											>
+												<h3 style={{ fontSize: '15px' }}>
+													<i class="fas fa-edit" />
+													<br />
+													{trans.edit}
+													<br />
+												</h3>
+											</Button>
+										</div>
+									) : null}
 									<ButtonToolbar>
 										<Button
-											variant="outline-blue"
-											block
+											variant="omar"
+											style={{ width: '120px', height: '65px', backgroundColor: '#a3dbf1' }}
 											onClick={() => this.setState({ modalShow: true })}
-											style={{ width: '250px', height: '115px' }}
 										>
-											<h3>
+											<h6>
 												<i class="fas fa-comment" style={{ fontSize: '1em' }} />
 												<br />
-												Add Comments
-											</h3>
+												{trans.comments}
+											</h6>
 										</Button>
 										<AddCommentsLawyer
 											show={this.state.modalShow}
@@ -252,14 +309,36 @@ class Companies extends Component {
 											formId={Form._id}
 										/>
 									</ButtonToolbar>
-									<br />
 								</ButtonGroup>
+								<br />
+								{Form.status === 'Reviewer rejected' ? (
+									<div>
+										{/* <Button
+												type="button"
+												variant="dark"
+												onClick={() => this.redirectEdit(Form._id, Form.formType)}
+												class="btn btn-info"
+											>
+												<h3 style={{ color: '#64b9e0', fontSize: '15px' }}>
+													{trans.edit}<br />
+													<i class="fas fa-edit" />
+												</h3>
+											</Button>
+											<br /> */}
+										<MDBProgress material value={60} color="dark" height="63px">
+											<h3 style={{ color: '#64b9e0', fontSize: '30px' }}>
+												{trans.reviewerR} <br /> 60%
+											</h3>
+										</MDBProgress>
+									</div>
+								) : null}
+
 								<div>
-									{Form.status === 'Reviewer rejected' ? (
+									{/* {Form.status === 'Reviewer rejected' ? (
 										<div>
 											<MDBProgress material value={60} color="dark" height="63px">
 												<h3 style={{ color: '#64b9e0', fontSize: '30px' }}>
-													Reviewer Rejected <br /> 60%
+													{trans.reviewerR} <br /> 60%
 												</h3>
 											</MDBProgress>
 											<br />
@@ -270,16 +349,16 @@ class Companies extends Component {
 												class="btn btn-info"
 											>
 												<h3 style={{ color: '#64b9e0', fontSize: '15px' }}>
-													Edit Form<br />
+													{trans.edit}<br />
 													<i class="fas fa-edit" />
 												</h3>
 											</Button>
 										</div>
-									) : null}
+									) : null} */}
 									{Form.status === 'In progress Lawyer' ? (
 										<MDBProgress material value={50} color="dark" height="63px">
 											<h3 style={{ color: '#64b9e0', fontSize: '30px' }}>
-												Lawyer Accepted <br />50%{' '}
+												{trans.lawyerA} <br />50%{' '}
 											</h3>
 										</MDBProgress>
 									) : null}
@@ -293,44 +372,45 @@ class Companies extends Component {
 	};
 
 	render() {
+		trans.setLanguage(this.props.lang);
 		return (
 			<div>
 				<div>
 					<div
 						style={{
 							backgroundColor: '#a3dbf1',
-							marginTop: '90px',
+							paddingTop: '70px',
 							textAlign: 'center',
 							fontSize: '50px',
 							color: 'dark',
-							paddingBottom: '50px',
-							paddingTop: '70px',
-							paddingLeft: '60px',
 							flexDirection: 'row',
-							justifyContent: 'flex-end'
+							justifyContent: 'flex-end',
+							height: '205px'
 						}}
 					>
-						Specific Lawyer Cases
-						<br />
+						{trans.title}
 						<Dropdown>
 							<Dropdown.Toggle
-								className="btn blue-gradient btn-block btn-rounded z-depth-1a"
+								//className="btn blue-gradient btn-block btn-rounded z-depth-1a"
 								variant="omar"
 								id="dropdown-basic"
-								style={{ width: '150px' }}
+								style={{ width: '150px', left: '0', padding: '0.5px' }}
 							>
-								Sort the Cases
+								{trans.sortB}
 							</Dropdown.Toggle>
 							<Dropdown.Menu>
-								<Dropdown.Item onClick={() => this.sort()} style={{ textAlign: 'left' }}>
-									By ID
+								<Dropdown.Item
+									onClick={() => this.sort()}
+									style={{ textAlign: 'left', color: blue200 }}
+								>
+									{trans.id}
 								</Dropdown.Item>
 								<Dropdown.Divider />
 								<Dropdown.Item
 									onClick={() => this.sortByCreationDate()}
-									style={{ textAlign: 'center' }}
+									style={{ textAlign: 'center', color: blue200 }}
 								>
-									By Creation Date
+									{trans.date}
 								</Dropdown.Item>
 							</Dropdown.Menu>
 						</Dropdown>

@@ -131,13 +131,10 @@ exports.update = async (att, value, body) => {
   if (att === "_id") {
     //console.log(body)
     var dynamicForm = await DynamicForm.findByIdAndUpdate(value, body)
-      .then(res => {
-        console.log(res)
-        return res;
-      })
-      .catch(err => {
-        return { error: err };
-      });
+    .then(res=>{return res})
+    .catch(error=>{
+        return {error:error}
+    })
    // console.log(dynamicForm)
     if (dynamicForm.error) return dynamicForm;
     return await DynamicForm.findById(value)

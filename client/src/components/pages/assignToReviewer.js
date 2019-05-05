@@ -5,6 +5,7 @@ import 'mdbreact/dist/css/mdb.css';
 import { Button } from 'react-bootstrap';
 import Flippy, { FrontSide, BackSide } from 'react-flippy';
 import trans from '../translations/unassignedRevTranslation';
+import swal from 'sweetalert';
 const Mongoose = require('mongoose');
 class assignToReviewer extends Component {
 	state = {
@@ -17,8 +18,11 @@ class assignToReviewer extends Component {
 				headers: { Authorization: localStorage.getItem('jwtToken') }
 			})
 			.then((res) => {
-				if (Array.isArray(res.data.data)) {
+				if (Array.isArray(res.data.data)&&res.data.data.length>0) {
 					this.setState({ certainFormType: res.data.data });
+				}
+				else{
+					swal('There are no cases to pick right now!')
 				}
 			});
 	}
@@ -26,7 +30,14 @@ class assignToReviewer extends Component {
 		axios.defaults.headers.common['Authorization'] = localStorage.getItem('jwtToken');
 		axios.put('/routes/api/userDynamicForms/takingForm/' + Mongoose.Types.ObjectId(formId), {
 			headers: { Authorization: localStorage.getItem('jwtToken') }
-		});
+		})
+		.then((res) => {
+			//document.getElementById('Flip').flipOnClick = false;
+			swal('This Case is assigned to YOU!!');
+			setTimeout("document.location.href = '/lawyerAcceptedForms';",3500);
+			// document.location.href = '/lawyerAcceptedForms';
+		})
+		.catch((err) => console.log(err));
 		// document.location.href='/AssignToReviewer'
 	};
 	getAttributes = () => {
@@ -79,10 +90,10 @@ class assignToReviewer extends Component {
 							<Button
 								type="button"
 								variant="ali"
-								onClick={() => (this.AssignReviewer(Form._id), alert('This Case is assigned to YOU!!'))}
+								onClick={() => this.AssignReviewer(Form._id)}
 								class="btn btn-info"
 							>
-								<h6 style={{ color: '#64b9e0' }}>Pick Case</h6>
+								<h6 style={{ color: '#64b9e0' }}>{trans.pick}</h6>
 							</Button>
 						</div>
 					</FrontSide>
@@ -97,18 +108,50 @@ class assignToReviewer extends Component {
 						<div>
 							{KEYS.map((key, index) => {
 								if (key !== '_id' && key !== 'formType' && key !== 'investorId' && key !== 'lawyerId') {
+									var now=key;
+									var temp="";
+									temp=temp+key.charAt(0).toUpperCase();
+									for(var j=1;j<now.length;j++){
+									  if(now.charCodeAt(j)>=65 && now.charCodeAt(j)<=90){
+										temp=temp+" "
+										temp=temp+now.charAt(j)
+									  }
+									  else{
+										temp=temp+now.charAt(j)
+									  }
+									  
+									}
 									var constraints = Form[key];
 									console.log(key, ':', constraints);
 									for (var i in constraints) {
 										if (Array.isArray(constraints)) return constraints.map((att, index) => {});
+										if (key==="creationDate"){
+											var date=constraints.substring(0,10);
+											console.log(date)
+											return (
+											  <div>
+												<div key={key}>
+												  <h5>
+													<i class="fas fa-circle" style={{fontSize:'13px'}}/> {temp} : 
+													  <span style={{ textAlign: 'center' }} />{' '}
+													  <span style={{ color: '#9ad1e7' }}> {date}{" "}</span>{' '}
+												  </h5>
+												</div>
+												
+											  </div>
+											);
+				  
+										  }
+										  else{
 										return (
 											<h5>
-												<i class="fas fa-circle" style={{ fontSize: '13px' }} /> {key} :{' '}
+												<i class="fas fa-circle" style={{ fontSize: '13px' }} /> {temp} :{' '}
 												<span style={{ textAlign: 'center' }} />{' '}
 												<span style={{ color: '#9ad1e7' }}>{constraints}</span>{' '}
 											</h5>
 										);
 									}
+								}
 								}
 							})}
 						</div>
@@ -118,6 +161,7 @@ class assignToReviewer extends Component {
 		});
 	};
 	render() {
+		trans.setLanguage(this.props.lang);
 		return (
 			<div>
 				<div

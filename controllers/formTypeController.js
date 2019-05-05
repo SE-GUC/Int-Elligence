@@ -80,6 +80,17 @@ exports.update = async (att, value, body) => {
           return { error: err };
         });
   }
+  var formType = await FormType.updateMany({[att]:value}, body).catch(err => {
+    return { error: err };
+  });
+  if (formType.error) return formType;
+  return await FormType.find({[att]:value})
+    .then(res => {
+      return res;
+    })
+    .catch(err => {
+      return { error: err };
+    });
 };
 
 exports.remove = async (att,value)=>{

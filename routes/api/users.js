@@ -55,6 +55,7 @@ router.get('/CertainAttributes', passport.authenticate('jwt', { session: false }
 	const userid = req.user.id;
 	const searchUsers = await userController.search('_id', userid);
 	return res.json({
+		UserType: searchUsers.userType,
 		Username: searchUsers.name,
 		Gender: searchUsers.gender,
 		Nationality: searchUsers.nationality,
@@ -65,7 +66,8 @@ router.get('/CertainAttributes', passport.authenticate('jwt', { session: false }
 		Email: searchUsers.email,
 		Password: searchUsers.password,
 		Telephone: searchUsers.telephone,
-		Fax: searchUsers.fax
+		Fax: searchUsers.fax,
+		FinancialBalance: searchUsers.financialBalance
 	});
 });
 
@@ -108,13 +110,14 @@ router.post('/register', async (req, res) => {
 	const newUser = await userController.registerInvestor(req.body);
 	if (newUser.error) return res.status(400).send(newUser);
 	if (newUser.userType === 'Investor') {
-		newUser.resetPasswordToken = null;
+		newUser.resetPasswordToken = '';
 		newUser.resetPasswordExpires = null;
 		newUser.financialBalance = 0;
+		newUser.verifyToken = null;
 		returnedUser = await userController.update('_id', newUser._id, {
-			financialBalance: newUser.financialBalance,
 			resetPasswordToken: newUser.resetPasswordToken,
-			resetPasswordExpires: newUser.resetPasswordExpires
+			resetPasswordExpires: newUser.resetPasswordExpires,
+			verifyToken: newUser.verifyToken
 		});
 		return res.json({
 			msg: 'Account was created successfully',
@@ -146,17 +149,21 @@ router.post('/login', async (req, res) => {
 				}
 			}
 		}
-		const doesItMatch = await bcrypt.compareSync(password, user.password);
-		if (doesItMatch) {
-			const payload = {
-				id: user.id,
-				name: user.name,
-				email: user.email
-			};
-			const token = jwt.sign(payload, tokenKey, { expiresIn: '1h' });
-			//res.json({data: `Bearer ${token}`})
-			return res.json({ msg: 'You are logged in now', token: `Bearer ${token}`, type: user.userType }); //,data:'Token'
-		} else return res.status(400).send({ password: 'Wrong password' });
+		if (user.isVerified === true) {
+			const doesItMatch = await bcrypt.compareSync(password, user.password);
+			if (doesItMatch) {
+				const payload = {
+					id: user.id,
+					name: user.name,
+					email: user.email
+				};
+				const token = jwt.sign(payload, tokenKey, { expiresIn: '1h' });
+				//res.json({data: `Bearer ${token}`})
+				return res.json({ msg: 'You are logged in now', token: `Bearer ${token}`, type: user.userType }); //,data:'Token'
+			} else return res.status(400).send({ password: 'Wrong password' });
+		} else {
+			return res.status(401).send({ msg: 'Account not verified' });
+		}
 	} catch (e) {
 		console.log(e);
 	}
@@ -212,37 +219,60 @@ router.put('/updateForm/:formId', passport.authenticate('jwt', { session: false 
 	}
 });
 
-// change password
+// Change password
 router.post('/changePassword', passport.authenticate('jwt', { session: false }), async (req, res) => {
 	const userid = req.user.id;
 	const user = await userController.search('_id', userid);
+	const oldPassword = req.body.oldPassword;
 	const newPassword = req.body.newPassword;
 	const confirmPassword = req.body.confirmPassword;
-	if (newPassword === confirmPassword) {
-		const salt = await bcrypt.genSalt(10);
-		newPasswordEnc = await bcrypt.hash(newPassword, salt);
-		user.password = newPasswordEnc;
-		await user.save();
-		return res.json({ msg: 'Password was updated successfully', data: user });
-	} else return res.json({ msg: 'The passwords do not match!' });
+	const doesItMatch = await bcrypt.compareSync(oldPassword, user.password);
+	if (doesItMatch) {
+		if (newPassword === confirmPassword) {
+			const salt = await bcrypt.genSalt(10);
+			newPasswordEnc = await bcrypt.hash(newPassword, salt);
+			user.password = newPasswordEnc;
+			await user.save();
+			return res.json({ msg: 'Password was updated successfully', data: user });
+		} else return res.json({ msg: 'The passwords do not match!' });
+	} else {
+		return res.json({ msg: 'The old password does not match with your current password! Please check it again' });
+	}
 });
 
 //Paying fees
-router.put('/payingFees', passport.authenticate('jwt', { session: false }), async (req, res) => {
-	const userid = req.user.id;
+router.put('/payingFees', async (req, res) => {
+	const formId = req.body.id;
+	var form = await dynamicFormController.search('id', formId);
+	const userid = form.investorId;
+	const user = await userController.search('_id', userid);
 	const amount = req.body.amount;
-	if (req.user.userType === 'Investor') {
-		const user = await userController.search('_id', userid);
-		const financialBalance = user.financialBalance - amount;
-		if (financialBalance < 0) {
-			return res.json({ msg: 'Amount greater than the balance' });
+	form = form.toJSON();
+	if (form.status === 'Reviewer accepted') {
+		if (user.userType === 'Investor') {
+			const fee = form.fees - amount;
+			if (fee < 0) {
+				return res.json({ msg: 'Amount greater than the required' });
+			} else {
+				const newfinancialBalance = user.financialBalance - amount;
+				if (newfinancialBalance < 0) {
+					return res.json({ msg: 'Amount greater than the required' });
+				}
+				const newUser = await userController.update('_id', userid, { financialBalance: newfinancialBalance });
+				form.fees = fee;
+				if (form.fees === 0) {
+					//await dynamicFormController.update('_id',formId,{ status:'Approved'})
+					form.status = 'Approved';
+				}
+				await dynamicFormController.update('_id', formId, form);
+				const newform = await dynamicFormController.search('id', formId);
+				return res.json({ msg: 'Amount payed successfully', data: newform, newUser });
+			}
 		} else {
-			const newfinancialBalance = user.financialBalance - amount;
-			const newUser = await userController.update('_id', userid, { financialBalance: newfinancialBalance });
-			return res.json({ msg: 'Amount payed successfully', data: newUser });
+			return res.status(401).json({ msg: 'Non Authorized' });
 		}
 	} else {
-		return res.status(401).json({ msg: 'Non Authorized' });
+		return res.json({ msg: 'This form is not fully reviewed' });
 	}
 });
 
@@ -271,24 +301,6 @@ router.post('/forgotPassword', async (req, res) => {
 
 		var updatedUser2 = await User.findOneAndUpdate(mail, d);
 
-		// .then((res) => {
-		// 	console.log('sssjjjjjjsss');
-		// 	return res;
-		// })
-		// .catch((error) => {
-		// 	return { error: error };
-		// });
-
-		//var x = await userController.update('email', email, t);
-		//var x = await userController.update('resetPasswordToken', email, token);
-
-		//var y = await userController.update('resetPasswordExpires', email, Date.now() + 360000);
-
-		// user.update({
-		//   resetPasswordToken: token,
-		//   resetPasswordExpires: Date.now() + 360000,
-		// });
-
 		const transporter = nodemailer.createTransport({
 			service: 'gmail',
 			auth: {
@@ -304,7 +316,8 @@ router.post('/forgotPassword', async (req, res) => {
 			text:
 				'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
 				'Please click on the following link, or paste this into your browser to complete the process within one hour of receiving it:\n\n' +
-				`http://localhost:3000/reset/${token}\n\n` +
+				`http://localhost:3000/reset/${token}\n\n` + //to work on development uncomment
+				//`http://intelligence-summerge.herokuapp.com/reset/${token}\n\n` +    //to work on deployment uncomment
 				//`/routes/api/users/reset/${token}\n\n` +
 				'If you did not request this, please ignore this email and your password will remain unchanged.\n'
 		};
