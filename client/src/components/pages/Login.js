@@ -6,11 +6,9 @@ import classnames from 'classnames';
 import trans from '../translations/loginTranslation';
 import { Button } from 'react-bootstrap';
 import { MDBInput } from 'mdbreact';
-
 import { InputAdornment, withStyles } from '@material-ui/core';
 import TextField from '@material-ui/core/TextField';
 import { RemoveRedEye } from '@material-ui/icons';
-
 const styles = (theme) => ({
 	eye: {
 		cursor: 'pointer'
@@ -107,16 +105,18 @@ class Login extends Component {
 	};
 
 	render() {
+		
 		const { errors } = this.state;
 		const { password } = this.state;
 		trans.setLanguage(this.props.lang);
 
 		return (
 			<div>
+				<br/>
+				<br/>
 				<div className="modal-dialog" role="document">
 					{/* <form onSubmit={this.handleSubmit}> */}
 					<div className="modal-content form-elegant">
-						{/Header/}
 						<div className="modal-header text-center">
 							<h3 className="modal-title w-100 dark-grey-text font-weight-bold my-3" id="myModalLabel">
 								<strong> {trans.loginTitle}</strong>
@@ -133,7 +133,7 @@ class Login extends Component {
 										this.state.email.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i) ? (
 											'is-valid'
 										) : (
-											'is-invalid'
+											'is-invalid' 
 										)
 									}
 									id="Form-email1"
@@ -161,8 +161,8 @@ class Login extends Component {
 									value={this.state.password}
 									style={{ width: '100%' }}
 								>
-									<div className="valid-feedback">Looks good!</div>
-									<div className="invalid-feedback">Please enter your password</div>
+									<div className="valid-feedback">{trans.validP}</div>
+									<div className="invalid-feedback">{trans.invalidP}</div>
 								</PasswordInput>
 								{/* <label data-error="wrong" data-success="right" htmlFor="Form-pass1">
 									{trans.hintpassword}
@@ -175,13 +175,14 @@ class Login extends Component {
 								</p>
 							</div>
 							<div className="text-center mb-3">
-								<button
+								<Button
+									variant="omar"
+									style={{ width: '120px', height: '55px',backgroundColor:"#a3dbf1" }}  
 									onClick={(e) => this.handleSubmit(e)}
 									type="submit"
-									className="btn blue-gradient btn-block btn-rounded z-depth-1a"
 								>
 									{trans.loginbutton}
-								</button>
+								</Button>
 							</div>
 						</div>
 

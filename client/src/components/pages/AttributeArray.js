@@ -5,6 +5,7 @@ import axios from 'axios';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import AppBar from 'material-ui/AppBar';
 import RaisedButton from 'material-ui/RaisedButton';
+import swal from 'sweetalert';
 import TextField from 'material-ui/TextField';
 import {
 	MDBRow,
@@ -35,8 +36,8 @@ class AttributeArray extends Component {
 			attributes: [],
 			validations: [],
 			certainFormType: [],
-			formTypeArray: localStorage.getItem('formTypeArray'),
-			nationalities: []
+			nationalities: [],
+			nationality:''
 		};
 	}
 	componentDidMount = () => {
@@ -45,10 +46,11 @@ class AttributeArray extends Component {
 				headers: { Authorization: localStorage.getItem('jwtToken') }
 			})
 			.then((res) => {
-				console.log(res.data.data);
 				this.setState({
 					certainFormType: res.data.data
+					
 				});
+				console.log(this.state.certainFormType)
 			});
 	};
 	changeHandler = (event) => {
@@ -61,26 +63,44 @@ class AttributeArray extends Component {
 		for (var key in formType) {
 			KEYS.push(key);
 		}
-		console.log(KEYS);
 		return KEYS.map((key, index) => {
 			if (key !== '_id' && key !== '__v') {
+				var now=key;
+				var temp="";
+				temp=temp+key.charAt(0).toUpperCase();
+				for(var j=1;j<now.length;j++){
+					if(now.charCodeAt(j)>=65 && now.charCodeAt(j)<=90){
+						temp=temp+" "
+						temp=temp+now.charAt(j)
+					}
+					else{
+						temp=temp+now.charAt(j)
+					}
+					
+				}
 				var constraints = formType[key];
 				constraints = constraints.split(',');
-				console.log(constraints);
+				var now2=constraints[1]
+				if (now2==='required')
+				now2='Required'
+				else
+				now2='Not Required'
 				if (constraints[5] === 'dropdownlist') {
 					if (key === 'gender') {
 						return (
 							<div style={{ marginBottom: '60px' }}>
 								<MDBCol>
 									<div className="form-group">
-										<label htmlFor={key}>{key}</label>
+										<label htmlFor={key}>{temp+" ("+now2+") "}</label>
 										<select
 											className="form-control"
 											id="exampleFormControlSelect1"
 											name={key}
 											onChange={this.changeHandler}
 											value={this.state[key]}
+											style={{width:"350px"}}
 										>
+											<option>Please choose your gender</option>
 											<option>Female</option>
 											<option>Male</option>
 										</select>
@@ -98,15 +118,17 @@ class AttributeArray extends Component {
 							<div style={{ marginBottom: '60px' }}>
 								<MDBCol>
 									<div className="form-group">
-										<label htmlFor={key}>{key}</label>
+										<label htmlFor={key}>{temp+" ("+now2+") "}</label>
 										<select
 											className="form-control"
 											id="exampleFormControlSelect1"
 											name={key}
 											onChange={this.changeHandler}
 											value={this.state[key]}
+											style={{width:"350px"}}
 										>
-											{this.state.nationalities.map((nat) => (
+												<option>Please choose your nationality</option>
+												{this.state.nationalities.map((nat) => (
 												<option value={nat.name}>{nat.name}</option>
 											))};
 										</select>
@@ -120,15 +142,16 @@ class AttributeArray extends Component {
 							<div style={{ marginBottom: '60px' }}>
 								<MDBCol>
 									<div className="form-group">
-										<label htmlFor={key}>{key}</label>
+										<label htmlFor={key}>{temp+" ("+now2+") "}</label>
 										<select
 											className="form-control"
 											id="exampleFormControlSelect1"
 											name={key}
 											onChange={this.changeHandler}
 											value={this.state[key]}
+											style={{width:"350px"}}
 										>
-											<option>Please check your type</option>
+											<option>Please choose your type</option>
 											<option>Person</option>
 										</select>
 									</div>
@@ -141,13 +164,14 @@ class AttributeArray extends Component {
 							<div style={{ marginBottom: '60px' }}>
 								<MDBCol>
 									<div className="form-group">
-										<label htmlFor={key}>{key}</label>
+										<label htmlFor={key}>{temp+" ("+now2+") "}</label>
 										<select
 											className="form-control"
 											id="exampleFormControlSelect1"
 											name={key}
 											onChange={this.changeHandler}
 											value={this.state[key]}
+											style={{width:"350px"}}
 										>
 											<option>Please choose your Identification Type</option>
 											<option>National ID</option>
@@ -163,13 +187,14 @@ class AttributeArray extends Component {
 							<div style={{ marginBottom: '60px' }}>
 								<MDBCol>
 									<div className="form-group">
-										<label htmlFor={key}>{key}</label>
+										<label htmlFor={key}>{temp+" ("+now2+") "}</label>
 										<select
 											className="form-control"
 											id="exampleFormControlSelect1"
 											name={key}
 											onChange={this.changeHandler}
 											value={this.state[key]}
+											style={{width:"350px"}}
 										>
 											<option>Please choose the type of the manager</option>
 											<option>President</option>
@@ -190,13 +215,34 @@ class AttributeArray extends Component {
 							</div>
 						);
 					}
-				} else {
+				}
+				else if(constraints[5] === 'datepicker'){
+					return(
+						<div style={{ marginBottom: '60px' }}>
+						<MDBRow style={{ paddingLeft: '30px', justifyItems: 'center',width:"250px" }}>
+						<MDBCol>
+						<MDBInput
+							label={temp+" ("+now2+") "}
+							type="date"
+							class="material-icons prefix"
+							id="materialFormRegisterNameEx"
+							name={key}
+							onChange={this.changeHandler}
+							value={this.state[key]}
+							required
+						/>
+						</MDBCol>
+						</MDBRow>
+						</div>
+					);
+				} 
+				else {
 					return (
 						<div style={{ marginBottom: '60px' }}>
 							<MDBRow style={{ paddingLeft: '30px', justifyItems: 'center' }}>
 								<MDBCol>
 									<MDBInput
-										label={key}
+										label={temp+" ("+now2+") "}
 										value={this.state[key]}
 										name={key}
 										onChange={this.changeHandler}
@@ -216,30 +262,37 @@ class AttributeArray extends Component {
 	handleClick = (error) => {
 		error.preventDefault();
 		const keys = this.state.certainFormType['0'];
+		
 		var KEYS = [];
 		for (var key in keys) {
 			KEYS.push(key);
 		}
 		var payload2 = {};
 		KEYS.map((key, index) => {
-			if (key !== '__proto__' && key !== '_id' && key !== '__v') {
+			if (key !== '__proto__' && key !== '_id' && key !== '__v'&& key!=='formTypeArray' ) {
 				//payload2.push({ [key] : this.state[key] })
 				// key : this.state.key,
 				payload2[key] = this.state[key];
 			}
 		});
+		payload2["formTypeArray"]= localStorage.getItem("formTypeArray")
 		///CHANGE THIS PART WITH THE NEW ROUTE
-
+		console.log(payload2)
 		var apiBaseUrl = '/routes/api/userDynamicForms/addAttributeToArray';
 
 		axios.defaults.headers.common['Authorization'] = 'Bearer ' + localStorage.getItem('jwtToken');
 		axios
 			.put(apiBaseUrl, payload2, { headers: { Authorization: localStorage.getItem('jwtToken') } })
 			.then(function(response) {
-				alert('The profile has been updated successfully');
+				swal({
+					title: "Good job!",
+					text: "The Array has been created successfully!",
+					icon: "success",
+					button: "Aww yess!",
+				  });
 			})
 			.catch((error) => {
-				alert(error.response.data.errmsg || error.response.data);
+				swal(error.response.data.error.details['0'].message||error.response.data.msg || error.response.data.error || error.response.data);
 				console.log(error);
 			});
 	};
@@ -250,7 +303,12 @@ class AttributeArray extends Component {
 			<div style={{ paddingLeft: '60px', justifyItems: 'center' }}>
 				<MuiThemeProvider>
 					{this.getAttributes()}
-					<RaisedButton label="Submit" primary={true} style={style} onClick={this.handleClick} />
+					<Button label="Submit" className="btn-block btn-rounded z-depth-1a"
+								variant="omar"
+								style={{marginTop:"50px",marginLeft: "50px",marginRight:"2500px",width:"100px", height:"40px" ,backgroundColor:"#a3dbf1"}} onClick={this.handleClick}
+								 >
+								 Submit
+					</Button>
 				</MuiThemeProvider>
 			</div>
 		);

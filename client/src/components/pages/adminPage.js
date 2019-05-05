@@ -8,22 +8,26 @@ import { registerLR } from '../../actions/authentication';
 import classnames from 'classnames';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import { MDBRow, MDBCol } from 'mdbreact';
+import { Button, Container, ButtonGroup, ButtonToolbar } from 'react-bootstrap';
 import axios from 'axios';
+import { blue200, black } from 'material-ui/styles/colors';
+import { DiscFull } from '@material-ui/icons';
+import trans from '../translations/registerAdminTranslation';
 
 class adminPage extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			userType: '',
+			userType: 'Lawyer',
 			name: '',
 			email: '',
 			password: '',
 			password_confirm: '',
-			gender: '',
-			nationality: '',
-			identificationType: '',
+			gender: 'Male',
+			nationality: 'Egyptian',
+			identificationType: 'National ID',
 			identificationNumber: '',
-			birthdate: '',
+			birthdate: new Date(),
 			address: '',
 			telephone: '',
 			fax: '',
@@ -98,15 +102,18 @@ class adminPage extends Component {
 	}
 
 	render() {
+		trans.setLanguage(this.props.lang);
+
 		const { errors } = this.state;
 		return (
 			<div className="container" style={{ marginTop: '50px', width: '700px' }}>
-				<h2 style={{ marginBottom: '40px' }}>Registration</h2>
+				<br />
+				<h2 style={{ marginBottom: '40px', color: blue200 }}>{trans.title}</h2>
 				<form onSubmit={this.handleSubmit}>
 					<MDBRow>
 						<MDBCol>
 							<div className="form-group">
-								<label htmlFor="userType">User Type</label>
+								<label htmlFor="userType">{trans.user}</label>
 								<select
 									className="form-control"
 									id="exampleFormControlSelect1"
@@ -114,18 +121,18 @@ class adminPage extends Component {
 									onChange={this.handleInputChange}
 									value={this.state.userType}
 								>
-									<option>Lawyer</option>
-									<option>Reviewer</option>
+									<option>{trans.lawyer}</option>
+									<option>{trans.reviewer}</option>
 								</select>
 							</div>
 						</MDBCol>
 					</MDBRow>
 
 					<div className="form-group">
-						<label htmlFor="name">Name</label>
+						<label htmlFor="name">{trans.name}</label>
 						<input
 							type="text"
-							placeholder="Name"
+							placeholder={trans.nameplace}
 							className={classnames('form-control form-control-lg', {
 								'is-invalid': errors.name
 							})}
@@ -141,7 +148,7 @@ class adminPage extends Component {
 					<MDBRow>
 						<MDBCol>
 							<div className="form-group">
-								<label htmlFor="gender">Gender</label>
+								<label htmlFor="gender">{trans.gender}</label>
 								<select
 									className="form-control"
 									id="exampleFormControlSelect1"
@@ -149,15 +156,15 @@ class adminPage extends Component {
 									onChange={this.handleInputChange}
 									value={this.state.gender}
 								>
-									<option>Male</option>
-									<option>Female</option>
+									<option>{trans.male}</option>
+									<option>{trans.female}</option>
 								</select>
 							</div>
 						</MDBCol>
 					</MDBRow>
 
 					<div className="form-group">
-						<label htmlFor="Nationality">Nationality</label>
+						<label htmlFor="Nationality">{trans.nationality}</label>
 						<select
 							className="form-control"
 							id="exampleFormControlSelect1"
@@ -172,7 +179,7 @@ class adminPage extends Component {
 					<MDBRow>
 						<MDBCol>
 							<div className="form-group">
-								<label htmlFor="identificationType">Identification Type</label>
+								<label htmlFor="identificationType">{trans.identificationT}</label>
 								<select
 									className="form-control"
 									id="exampleFormControlSelect1"
@@ -180,18 +187,18 @@ class adminPage extends Component {
 									onChange={this.handleInputChange}
 									value={this.state.identificationType}
 								>
-									<option>National ID</option>
-									<option>Passport</option>
+									<option>{trans.id}</option>
+									<option>{trans.passport}</option>
 								</select>
 							</div>
 						</MDBCol>
 					</MDBRow>
 
 					<div className="form-group">
-						<label htmlFor="identificationNumber">Identification Number</label>
+						<label htmlFor="identificationNumber">{trans.identificationN}</label>
 						<input
 							type="text"
-							placeholder="identification Number"
+							placeholder={trans.identificationNplace}
 							className={classnames('form-control form-control-lg', {
 								'is-invalid': errors.identificationNumber
 							})}
@@ -206,26 +213,29 @@ class adminPage extends Component {
 					</div>
 
 					<div className="form-group">
-						<label htmlFor="birthdate">Birthdate</label>
+						<label htmlFor="birthdate">{trans.birthdate}</label>
 						<input
 							type="text"
-							placeholder="Birthdate"
+							placeholder={trans.birthdateplace}
 							className={classnames('form-control form-control-lg', {
 								'is-invalid': errors.birthdate
 							})}
+							class="material-icons prefix"
+							id="materialFormRegisterNameEx"
 							name="birthdate"
 							onChange={this.handleInputChange}
 							value={this.state.birthdate}
+							style={{ width: '250px' }}
 							required
 						/>
 						{errors.birthdate && <div className="invalid-feedback">{errors.birthdate}</div>}
 					</div>
 
 					<div className="form-group">
-						<label htmlFor="address">Address</label>
+						<label htmlFor="address">{trans.address}</label>
 						<input
 							type="text"
-							placeholder="Address"
+							placeholder={trans.addressplace}
 							className={classnames('form-control form-control-lg', {
 								'is-invalid': errors.address
 							})}
@@ -238,10 +248,10 @@ class adminPage extends Component {
 					</div>
 
 					<div className="form-group">
-						<label htmlFor="email">Email</label>
+						<label htmlFor="email">{trans.email}</label>
 						<input
 							type="email"
-							placeholder="Email"
+							placeholder={trans.emailplace}
 							className={classnames('form-control form-control-lg', {
 								'is-invalid': errors.email
 							})}
@@ -254,10 +264,10 @@ class adminPage extends Component {
 					</div>
 
 					<div className="form-group">
-						<label htmlFor="password">Password</label>
+						<label htmlFor="password">{trans.password}</label>
 						<input
 							type="password"
-							placeholder="Password"
+							placeholder={trans.passwordplace}
 							className={classnames('form-control form-control-lg', { 'is-invalid': errors.password })}
 							//className={this.state.newPassword.valid?"is-valid" : "is-invalid"}
 							name="password"
@@ -270,10 +280,10 @@ class adminPage extends Component {
 					</div>
 
 					<div className="form-group">
-						<label htmlFor="password_confirm">Confirm Password</label>
+						<label htmlFor="password_confirm">{trans.confirm}</label>
 						<input
 							type="password"
-							placeholder="Confirm Password"
+							placeholder={trans.confirmplace}
 							className={classnames('form-control form-control-lg', {
 								'is-invalid': errors.password_confirm
 							})}
@@ -286,10 +296,10 @@ class adminPage extends Component {
 					</div>
 
 					<div className="form-group">
-						<label htmlFor="telephone">Telephone</label>
+						<label htmlFor="telephone">{trans.telephone}</label>
 						<input
 							type="text"
-							placeholder="Telephone"
+							placeholder={trans.telephoneplace}
 							className={classnames('form-control form-control-lg', {
 								'is-invalid': errors.telephone
 							})}
@@ -301,10 +311,10 @@ class adminPage extends Component {
 					</div>
 
 					<div className="form-group">
-						<label htmlFor="fax">Fax</label>
+						<label htmlFor="fax">{trans.fax}</label>
 						<input
 							type="text"
-							placeholder="Fax"
+							placeholder={trans.faxplace}
 							className={classnames('form-control form-control-lg', {
 								'is-invalid': errors.fax
 							})}
@@ -316,14 +326,15 @@ class adminPage extends Component {
 					</div>
 
 					<div className="form-group">
-						<button
+						<Button
 							type="submit"
+							variant="omar"
+							style={{ width: '140px', height: '40px', backgroundColor: '#a3dbf1', color: black }}
 							disabled={!this.validateForm()}
-							onClick={(e) => (this.handleSubmit(e), alert('The Account has been created successfully'))}
-							className="btn btn-primary"
+							onClick={(e) => this.handleSubmit(e)}
 						>
-							Register User
-						</button>
+							{trans.registerbutton}
+						</Button>
 					</div>
 				</form>
 			</div>
