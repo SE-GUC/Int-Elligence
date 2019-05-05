@@ -64,7 +64,7 @@ export default class Verify extends Component {
 				}
 			})
 			.catch((error) => {
-				alert(error.response.data.errmsg || error.response.data);
+				swal(error.response.data.errmsg || error.response.data);
 				this.setState({
 					updated: false,
 					isLoading: false,
@@ -117,7 +117,7 @@ export default class Verify extends Component {
 					});
 				}
 			})
-			.catch((err) => alert(err.response.data.errmsg || err.response.data));
+			.catch((err) => swal(err.response.data.errmsg || err.response.data));
 	};
 	render() {
 		const { password, error, isLoading, updated, showNullError } = this.state;
