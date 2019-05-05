@@ -41,12 +41,13 @@ router.get('/AllFormSortedByFormId/', passport.authenticate('jwt', { session: fa
 
 //sort by form creation date for a specific user
 router.get('/SpecificformsSortedByformDate', passport.authenticate('jwt', { session: false }), async (req, res) => {
-	const userid = req.user.id;
+  const userid = req.user.id;
+  var inProgressForms = [];
 	if (req.user.userType === 'Lawyer') {
 		var forms = await dynamicFormController.search('lawyerId', userid);
-		var inProgressForms = [];
+		
 		for (i = 0; i < forms.length; i++) {
-			if (forms[i].status === 'In progress Lawyer') inProgressForms.push(forms[i]);
+			if (forms[i].status === 'In progress Lawyer' || forms[i].status==='Reviewer rejected') inProgressForms.push(forms[i]);
 		}
 		if (inProgressForms.error) return res.status(400).json({ error: forms.error });
 		inProgressForms.sort(userController.compareByDate);
@@ -66,12 +67,13 @@ router.get('/SpecificformsSortedByformDate', passport.authenticate('jwt', { sess
 
 //sort specific forms by id as a lawyer
 router.get('/SpecificFormSortedByFormId', passport.authenticate('jwt', { session: false }), async (req, res) => {
-	const userid = req.user.id;
+  const userid = req.user.id;
+  var inProgressForms = [];
 	if (req.user.userType === 'Lawyer') {
 		var forms = await dynamicFormController.search('lawyerId', userid);
-		var inProgressForms = [];
+		
 		for (i = 0; i < forms.length; i++) {
-			if (forms[i].status === 'In progress Lawyer') inProgressForms.push(forms[i]);
+			if (forms[i].status === 'In progress Lawyer' || forms[i].status==='Reviewer rejected') inProgressForms.push(forms[i]);
 		}
 		if (inProgressForms.error) return res.status(400).json({ error: forms.error });
 		inProgressForms.sort(userController.compareById);
@@ -318,7 +320,7 @@ router.put(
         form.status === "In progress Reviewer" &&
         form.reviewerId.equals(req.user.id)
       ) {
-        form.status = "Approved";
+        form.status = "Reviewer accepted";
         const returnedForm = await dynamicFormController.update(
           "_id",
           formid,
@@ -326,13 +328,13 @@ router.put(
         );
         if (returnedForm.error)
           return res.status(400).json({ error: form.error });
-        const investor = await userController.search("_id".form.investor_id);
+        const investor = await userController.search('_id',returnedForm.investorId);
         if(investor!==null){
         if (investor.error)
           return res.status(400).json({ error: investor.error });
         const updatedFinancialBalance = form.fees + investor.financialBalance;
         const returnedInvestor = await userController.update(
-          "_id",
+          '_id',
           investor._id,
           { financialBalance: updatedFinancialBalance }
         );
@@ -515,6 +517,16 @@ router.get('/getInvestorApprovedCompanies', passport.authenticate('jwt', { sessi
 		res.status(401).json({ msg: 'Non Authorized' });
 	}
 });
+//Show an investors approved companies
+router.get('/getAllApprovedCompanies', async (req, res) => {
+		var forms = await dynamicFormController.search();
+		if (forms.error) return res.status(400).json({ error: forms.error });
+		var acceptedForms = [];
+		for (i = 0; i < forms.length; i++) {
+			if (forms[i].status === 'Approved') acceptedForms.push(forms[i]);
+		}
+		res.json({ data: acceptedForms });
+});
 
 //As a lawyer I can add a comment
 router.put(
@@ -617,6 +629,114 @@ router.put(
     }
   }
 );
+
+// //Adding Attribute to Array
+// router.put(
+//   "/addAttributeToArray/",
+//   passport.authenticate("jwt", { session: false }),
+//   async (req, res) => {
+//     if (req.user.userType === "Investor") {
+//       console.log("lolo")
+//      // const formid = req.params.formId;
+//       var form = await dynamicFormController.search("companyName", req.body.companyName);
+//       if (form.error) return res.status(400).json({ error: form.error });
+//       console.log("lolo2")
+//       form = await form[0].toJSON()    
+//       if(form.status==="Unassigned"){
+//         var arr = form[req.body.formTypeArray]
+//         if(!arr)
+//             form[req.body.formTypeArray]=[]
+//         form[req.body.formTypeArray].push(req.body)
+//        // console.log(form)    
+//         var updatedForm = await dynamicFormController.update("_id", form._id, form);
+//        // console.log(updatedForm)
+//         if(updatedForm.error) return res.status(400).json({error:updatedForm.error})
+//         return res.json({msg:"Form updated Successfully",data:updatedForm})
+//       }
+//       else{
+//         return res.status(400).json({error:"You can't edit this form"})
+//       }
+//     } else  if (req.user.userType === "Lawyer") {
+//       const formid = req.params.formId;
+//       var form = await dynamicFormController.search("companyName", req.body.companyName);
+//       if (form.error) return res.status(400).json({ error: form.error });
+//       form = await form[0].toJSON()
+//       if(form.status==="Lawyer accepted"){
+//         var arr = form[req.body.formTypeArray]
+//         if(!arr)
+//             form[req.body.formTypeArray]=[]
+//         form[req.body.formTypeArray].push(req.body)    
+//         var updatedForm = await dynamicFormController.update("_id", formid, form);
+//         if(updatedForm.error) return res.status(400).json({error:updatedForm.error})
+//         return res.json({msg:"Form updated Successfully",data:updatedForm})
+//       }
+//       else{
+//         return res.status(400).json({error:"You can't edit this form"})
+//       } 
+//     }else {
+//       return res.status(401).json({ msg: "Non Authorized" });
+//     }
+//   }
+// );
+//Adding Attribute to Array
+router.put(
+  "/addAttributeToArray/",
+  passport.authenticate("jwt", { session: false }),
+  async (req, res) => {
+    if (req.user.userType === "Investor") {
+      console.log("lolo")
+     // const formid = req.params.formId;
+     console.log(req.body)
+      console.log(req.body.companyName)
+      console.log(req.body.formTypeArray)
+      var form = await dynamicFormController.search("companyName", req.body.companyName);
+      if (form.error) return res.status(400).json({ error: form.error });
+      if(form===[] || form===null || form===undefined) return res.status(400).json({error:"Company doesn't exist"})
+      console.log(form)
+      form = await form[0].toJSON()
+      if(form.status==="Unassigned"){
+        if(!form[req.body.formTypeArray]){
+          form[req.body.formTypeArray]=[]
+          console.log("hi")
+        }
+        console.log(form[req.body.formTypeArray])
+        var arr = form[req.body.formTypeArray]
+        if(arr.length===0)
+        //console.log(arr)
+        form[req.body.formTypeArray].push(req.body)
+       // console.log(form[req.body.formTypeArray])
+        console.log(form)    
+        var updatedForm = await dynamicFormController.update("_id", form._id, form);
+        console.log(updatedForm)
+        if(updatedForm.error) return res.status(400).json({error:updatedForm.error})
+        return res.json({msg:"Form updated Successfully",data:updatedForm})
+      }
+      else{
+        return res.status(400).json({error:"You can't edit this form"})
+      }
+    } else  if (req.user.userType === "Lawyer") {
+      const formid = req.params.formId;
+      var form = await dynamicFormController.search("companyName", req.body.companyName);
+      if (form.error) return res.status(400).json({ error: form.error });
+      form = await form[0].toJSON()
+      if(form.status==="Lawyer accepted"){
+        var arr = form[req.body.formTypeArray]
+        if(!arr)
+            form[req.body.formTypeArray]=[]
+        form[req.body.formTypeArray].push(req.body)    
+        var updatedForm = await dynamicFormController.update("_id", formid, form);
+        if(updatedForm.error) return res.status(400).json({error:updatedForm.error})
+        return res.json({msg:"Form updated Successfully",data:updatedForm})
+      }
+      else{
+        return res.status(400).json({error:"You can't edit this form"})
+      } 
+    }else {
+      return res.status(401).json({ msg: "Non Authorized" });
+    }
+  }
+);
+
 
 //lawyer can edit in the form after being rejected from the reviewer
 router.put(

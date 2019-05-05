@@ -9,11 +9,12 @@ import { Button } from 'mdbreact';
 import { red100 } from 'material-ui/styles/colors';
 import { blue100 } from 'material-ui/styles/colors';
 import { blue200 } from 'material-ui/styles/colors';
-
+import trans from '../translations/adminProfileTranslation';
 class AdminProfile extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
+			userType:'',
 			adminName: '',
 			adminGender: '',
 			adminNationality: '',
@@ -33,6 +34,7 @@ class AdminProfile extends Component {
 			})
 			.then((response) => {
 				this.setState({
+					userType:response.data.UserType,
 					adminName: response.data.Username,
 					adminGender: response.data.Gender,
 					adminNationality: response.data.Nationality,
@@ -48,8 +50,10 @@ class AdminProfile extends Component {
 	}
 
 	render() {
+		trans.setLanguage(this.props.lang);
 		var Admin = (
 			<div>
+				<br />
 				<br />
 				<br />
 				<br />
@@ -60,7 +64,12 @@ class AdminProfile extends Component {
 								<div class="container">
 									<div
 										class="jumbotron"
-										style={{ width: '300px', height: '130px', paddingTop: '10px' }}
+										style={{
+											width: '500px',
+											height: '130px',
+											paddingTop: '10px',
+											backgroundColor: '#a3dbf1'
+										}}
 									>
 										<h3>
 											{' '}
@@ -71,6 +80,10 @@ class AdminProfile extends Component {
 											{' '}
 											<i className="fas fa-at" style={{ color: blue200 }} />{' '}
 											{this.state.adminEmail}
+										</h4>
+										<h4>
+											{' '}
+											<i className="fas fa-briefcase" style={{ color: blue200 }} /> Admin
 										</h4>
 									</div>
 								</div>
@@ -93,7 +106,8 @@ class AdminProfile extends Component {
 										<div class="row">
 											<div class="col-md-6">
 												<label>
-													<i class="fas fa-venus-mars" style={{ color: blue200 }} /> Gender
+													<i class="fas fa-venus-mars" style={{ color: blue200 }} />{' '}
+													{trans.gender}
 												</label>
 											</div>
 											<div class="col-md-6">
@@ -104,7 +118,7 @@ class AdminProfile extends Component {
 											<div class="col-md-6">
 												<label>
 													<i class="fas fa-birthday-cake" style={{ color: blue200 }} />{' '}
-													Birthdate
+													{trans.birthdate}
 												</label>
 											</div>
 											<div class="col-md-6">
@@ -115,7 +129,7 @@ class AdminProfile extends Component {
 											<div class="col-md-6">
 												<label>
 													<i className="fas fa-globe" style={{ color: blue200 }} />{' '}
-													Nationality
+													{trans.nationality}
 												</label>
 											</div>
 											<div class="col-md-6">
@@ -126,7 +140,7 @@ class AdminProfile extends Component {
 											<div class="col-md-6">
 												<label>
 													<i className="fas fa-id-badge" style={{ color: blue200 }} />{' '}
-													Identification Type
+													{trans.identificationType}
 												</label>
 											</div>
 											<div class="col-md-6">
@@ -140,7 +154,7 @@ class AdminProfile extends Component {
 														class="fas fa-sort-numeric-down"
 														style={{ color: blue200 }}
 													/>{' '}
-													Identification Number
+													{trans.identificationNumber}
 												</label>
 											</div>
 											<div class="col-md-6">
@@ -151,7 +165,7 @@ class AdminProfile extends Component {
 											<div class="col-md-6">
 												<label>
 													<i class="fas fa-map-marked-alt" style={{ color: blue200 }} />{' '}
-													Address
+													{trans.address}
 												</label>
 											</div>
 											<div class="col-md-6">
@@ -161,7 +175,8 @@ class AdminProfile extends Component {
 										<div class="row">
 											<div class="col-md-6">
 												<label>
-													<i class="fas fa-phone" style={{ color: blue200 }} /> Telephone
+													<i class="fas fa-phone" style={{ color: blue200 }} />{' '}
+													{trans.telephone}
 												</label>
 											</div>
 											<div class="col-md-6">
@@ -171,7 +186,8 @@ class AdminProfile extends Component {
 										<div class="row">
 											<div class="col-md-6">
 												<label>
-													<i class="fas fa-fax" style={{ color: blue200 }} /> Fax
+													<i class="fas fa-fax" style={{ color: blue200 }} />
+													{trans.fax}
 												</label>
 											</div>
 											<div class="col-md-6">
@@ -195,5 +211,5 @@ class AdminProfile extends Component {
 	}
 }
 
-ReactDOM.render(<AdminProfile />, document.getElementById('root'));
+// ReactDOM.render(<AdminProfile />, document.getElementById('root'));
 export default AdminProfile;

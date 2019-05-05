@@ -17,7 +17,7 @@ import Footer from '../layout/footer';
 import { Animate, AnimateGroup } from 'react-simple-animate';
 import egypt1 from '../layout/egypt.gif';
 import trans from '../translations/landingTranslation';
-
+// import meta from '@babel/core';
 class LandingBody extends Component {
 	props = {
 		startStyle: { opacity: 0 },
@@ -30,10 +30,11 @@ class LandingBody extends Component {
 		document.location.href = '/';
 	}
 	render() {
+		trans.setLanguage(this.props.lang);
 		var loggedIn = (
 			<div>
 				<Button variant="outline-light" size="lg" onClick={this.logOut}>
-					Signout
+					{trans.signout}
 				</Button>
 				<Button variant="outline-light" size="lg" href="/journal">
 					{trans.electronicjournal}
@@ -53,7 +54,6 @@ class LandingBody extends Component {
 				</Button>
 			</div>
 		);
-		trans.setLanguage(this.props.lang);
 		return (
 			<Carousel>
 				<Carousel.Item>
@@ -69,10 +69,12 @@ class LandingBody extends Component {
 							<source src={egypt} type="video/mp4" />
 						</video>
 					</div>
+					
 					<br />
 					<br />
 					<AnimateGroup play style={{ display: 'flex' }}>
 						<view style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+					
 							<Animate
 								delaySeconds="0.1"
 								durationSeconds="0.6"
@@ -147,6 +149,7 @@ class LandingBody extends Component {
 								<img src={egypt1} height="50px" width="80px" />
 							</Animate>
 						</view>
+						
 					</AnimateGroup>
 					<div style={{ height: '570px' }}>
 						<Carousel.Caption>
